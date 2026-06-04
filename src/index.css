@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
-body {
-  @apply antialiased text-gray-900;
+/* Base styles */
+@layer base {
+  body {
+    @apply antialiased text-gray-900 bg-gray-50;
+  }
+}
+
+/* Custom utilities if needed */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
 }
