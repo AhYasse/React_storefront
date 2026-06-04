@@ -1,38 +1,52 @@
-# E-commerce Client
+# ShopHub E-commerce Client
 
-A modern, responsive e-commerce storefront built with **React**, **TypeScript**, and **Vite**.
+A modern, responsive e-commerce frontend built with React, TypeScript, and Tailwind CSS.
 
-## Features
+## 🚀 Tech Stack
 
-- **Product Catalog:** Interactive browsing and product discovery.
-- **Shopping Cart:** Dynamic management of items with persistent state.
-- **User Authentication:** Secure signup and login functionality.
-- **Responsive Design:** Optimized for mobile and desktop screens.
+- **Frontend:** [React](https://reactjs.org/) with [TypeScript](https://www.typescriptlang.org/)
+- **Routing:** [React Router DOM](https://reactrouter.com/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **Animations:** [Framer Motion](https://www.framer.com/motion/)
+- **Icons:** [Lucide React](https://lucide.dev/)
+- **Build Tool:** [Vite](https://vitejs.dev/)
 
-## Tech Stack
+## ✨ Features Implemented
 
-- **Framework:** React
-- **Language:** TypeScript
-- **Build System:** Vite
-- **Icons:** React Icons
+- **Responsive Navigation:** A sticky navigation bar with a functional mobile menu and cart indicator.
+- **Hero Section:** Animated landing page header to grab user attention.
+- **Product Discovery:**
+  - Home page with featured product placeholders.
+  - Dynamic Product Detail page (`/product/:id`) with layout for specifications and "Add to Cart" actions.
+- **Shopping Cart:** 
+  - Dedicated Cart page with item quantity management (plus/minus controls).
+  - Empty cart state handling.
+  - Total price calculation.
+- **Authentication UI:**
+  - Clean, centered Login form.
+  - Detailed Registration form for new users.
+- **User Experience:** Smooth page transitions and element animations using Framer Motion.
 
-## Getting Started
+## 🛠️ Project Structure
 
-### Prerequisites
-- Node.js (Latest LTS version recommended)
+- `src/components/`: Reusable UI components like `Layout` and `NavBar`.
+- `src/pages/`: Main views including `Home`, `ProductPage`, `CartPage`, `Login`, and `Register`.
+- `src/App.tsx`: Centralized routing configuration.
+- `src/main.tsx`: Application entry point.
 
-### Installation
+## 🏁 Getting Started
 
-1. **Clone the repository**
-2. **Install dependencies:**
+1. **Install dependencies:**
    ```bash
    npm install
    ```
-3. **Start the development server:**
+
+2. **Run the development server:**
    ```bash
    npm run dev
    ```
 
-## Scripts
-- `npm run dev`: Launch development server.
-- `npm run build`: Compile project for production.
+3. **Build for production:**
+   ```bash
+   npm run build
+   ```
