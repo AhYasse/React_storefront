@@ -1,25 +1,12 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Layout from '@/components/Layout';
-import Home from '@/pages/Home';
-import ProductPage from '@/pages/ProductPage';
-import CartPage from '@/pages/CartPage';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
+import { RouterProvider } from 'react-router-dom';
+import { router } from '@/router';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/product/:id" element={<ProductPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="*" element={<Home />} />
-        </Routes>
-      </Layout>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <RouterProvider router={router} />
+    </ErrorBoundary>
   );
 }
 
