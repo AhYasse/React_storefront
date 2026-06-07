@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite'; 
 import path from 'path';
@@ -23,12 +23,24 @@ export default defineConfig({
     minify: 'terser', // Optional: 'esbuild' is default and faster, 'terser' can yield slightly smaller bundles
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Split vendor code into separate chunks for better caching
-          react: ['react', 'react-dom', 'react-router-dom'],
-          redux: ['@reduxjs/toolkit', 'react-redux', 'redux-persist'],
-          ui: ['framer-motion', 'lucide-react', 'react-icons', 'react-hot-toast'],
-          utils: ['axios', 'date-fns', 'zod', '@hookform/resolvers', 'dompurify'],
+        // Use function syntax for type-safe, robust code splitting
+        manualChunks: (id: string) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+              return 'react-vendor';
+            }
+            if (id.includes('@reduxjs/toolkit') || id.includes('react-redux') || id.includes('redux-persist')) {
+              return 'redux-vendor';
+            }
+            if (id.includes('framer-motion') || id.includes('lucide-react') || id.includes('react-icons') || id.includes('react-hot-toast')) {
+              return 'ui-vendor';
+            }
+            if (id.includes('axios') || id.includes('date-fns') || id.includes('zod') || id.includes('@hookform/resolvers') || id.includes('dompurify') || id.includes('@sentry')) {
+              return 'utils-vendor';
+            }
+            // Fallback for any other node_modules
+            return 'vendor';
+          }
         },
       },
     },

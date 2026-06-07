@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ReactNode, ErrorInfo } from 'react';
 import * as Sentry from '@sentry/react';
 
 interface Props {

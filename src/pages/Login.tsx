@@ -29,7 +29,7 @@ export default function Login() {
       } else {
         throw new Error('Invalid credentials');
       }
-    } catch (error) {
+    } catch{
       toast.dismiss(loadingToast);
       toast.error('Invalid email or password. Please try again.');
     } finally {

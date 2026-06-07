@@ -26,6 +26,7 @@
     "react-redux": "^9.3.0",
     "react-router-dom": "^7.17.0",
     "redux-persist": "^6.0.0",
+    "terser": "^5.48.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
