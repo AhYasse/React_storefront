@@ -10,7 +10,15 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+*.tsbuildinfo
+
+# Testing
+coverage/
+
+# Misc
 *.local
+Thumbs.db
+stats.html
 
 # Editor directories and files
 .vscode/*
@@ -26,4 +34,3 @@ dist-ssr
 .env.local.*
 .env.local
 .env.production
-

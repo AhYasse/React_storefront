@@ -13,6 +13,9 @@ npx tsc --noEmit
 echo "🏗️ [3/4] Building Vite production bundle..."
 npm run build
 
+echo "📁 Copying index.html to 404.html for SPA routing support..."
+cp dist/index.html dist/404.html
+
 echo "📦 [4/4] Build Size Report:"
 echo "---------------------------------------------------"
 echo "Total dist size: $(du -sh dist | awk '{print $1}')"
