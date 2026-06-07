@@ -45,6 +45,7 @@ export const router = createBrowserRouter([
     ],
   },
 ], {
+  basename: import.meta.env.BASE_URL,
   future: {
     v7_relativeSplatPath: true,
     v7_fetcherPersist: true,
