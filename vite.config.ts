@@ -60,5 +60,5 @@ export default defineConfig({
     port: 3000,
     open: true,
   },
-  base: '/React-storefront/', // Set base path for GitHub Pages deployment
+  base: '/React_storefront/', // Set base path for GitHub Pages deployment
 });
