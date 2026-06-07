@@ -12,7 +12,7 @@ case "$1" in
     ;;
   "build")
     echo -e "${BLUE}🏗️ Running full build pipeline...${NC}"
-    ./build-frontend.sh
+    bash ./build-frontend.sh
     ;;
   "preview")
     echo -e "${BLUE}👀 Previewing production build...${NC}"

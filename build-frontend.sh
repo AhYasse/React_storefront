@@ -15,7 +15,8 @@ npm run build
 
 echo "📦 [4/4] Build Size Report:"
 echo "---------------------------------------------------"
-# Show human-readable sizes of the generated assets
-ls -lh dist/ | awk '{print $9, $5}' | column -t
+echo "Total dist size: $(du -sh dist | awk '{print $1}')"
+echo "Top assets:"
+find dist/assets -type f \( -name "*.js" -o -name "*.css" \) -exec du -h {} + | sort -hr | head -n 5
 echo "---------------------------------------------------"
 echo "✅ Build completed successfully!"
