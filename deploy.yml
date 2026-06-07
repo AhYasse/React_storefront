@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main"] # Ensure this matches your default branch name (main or master)
 
 permissions:
   contents: read
@@ -30,10 +30,10 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: bash workflow.sh install
+        run: bash ./workflow.sh install
 
       - name: Build
-        run: bash workflow.sh build
+        run: bash ./workflow.sh build
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
