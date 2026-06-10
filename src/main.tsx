@@ -1,44 +1,46 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { Toaster } from 'react-hot-toast';
+
+import { store, persistor } from '@/store/store';
 import App from '@/App';
 import '@/index.css';
-import { Toaster } from 'react-hot-toast';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
-       <Toaster 
-          position="top-right" 
+    {/* 1. Provider makes the Redux store available to the entire app */}
+    <Provider store={store}>
+      
+      {/* 2. PersistGate delays rendering until the persisted state is retrieved from localStorage */}
+      <PersistGate loading={null} persistor={persistor}>
+        
+        <App />
+        
+        {/* 3. Global Toast Notifications */}
+        <Toaster 
+          position="top-right"
           toastOptions={{
             duration: 3000,
             style: {
-              background: '#1F2937', // gray-800
+              background: '#1F2937', // Dark gray background
               color: '#fff',
               borderRadius: '12px',
               padding: '14px 20px',
               fontSize: '14px',
               fontWeight: '500',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
             },
             success: {
-              iconTheme: {
-                primary: '#10B981', // green-500
-                secondary: '#fff',
-              },
+              iconTheme: { primary: '#10B981', secondary: '#fff' },
             },
             error: {
-              iconTheme: {
-                primary: '#EF4444', // red-500
-                secondary: '#fff',
-              },
-            },
-            loading: {
-              iconTheme: {
-                primary: '#3B82F6', // blue-500
-                secondary: '#fff',
-              },
+              iconTheme: { primary: '#EF4444', secondary: '#fff' },
             },
           }} 
         />
+        
+      </PersistGate>
+    </Provider>
   </React.StrictMode>
 );

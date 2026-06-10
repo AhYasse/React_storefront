@@ -20,10 +20,10 @@ const storage = {
 
 // 2. Placeholder Root Reducer
 // TODO: In the coming days, import your slices and add them here:
-// import cartReducer from './cartSlice';
+import cartReducer from './cartSlice';
 // import userReducer from './userSlice';
 const rootReducer = combineReducers({
-  // cart: cartReducer,
+  cart: cartReducer,
   // user: userReducer,
   
   // Temporary placeholder to keep the store valid until slices are added
@@ -34,7 +34,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: 'root',
   storage, // Uses our custom ESM-safe storage
-  // whitelist: ['cart', 'user'], // TODO: Add slice names here later to persist them
+  whitelist: ['cart', 'user'], // TODO: Add slice names here later to persist them
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
