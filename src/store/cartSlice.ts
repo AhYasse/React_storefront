@@ -14,6 +14,19 @@ const initialState: CartState = {
   status: 'idle',
 };
 
+// Helper to safely extract error messages from unknown error types (like Axios errors)
+function getApiErrorMessage(error: unknown): string {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { message?: string } } }).response;
+    if (response?.data?.message) {
+      return response.data.message;
+    }
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return 'Sync failed';
+}
 // ==========================================
 // ASYNC THUNKS (Optimistic + Sync + Rollback)
 // ==========================================
@@ -31,7 +44,7 @@ export const addItemAsync = createAsyncThunk(
       // 2. Background Sync with Retry
       await withRetry(() => api.post('/cart', { id: item.id, quantity: item.quantity }), 3);
       return item.id;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // 3. Rollback on Failure
       if (existingItem) {
         // Revert to previous quantity
@@ -44,8 +57,8 @@ export const addItemAsync = createAsyncThunk(
         dispatch(cartSlice.actions.removeItemOptimistic(item.id));
       }
       toast.error('Failed to add item. Changes reverted.');
-      return rejectWithValue(error.response?.data?.message || 'Sync failed');
-    }
+      return rejectWithValue(getApiErrorMessage(error));
+    }   
   }
 );
 
@@ -62,13 +75,13 @@ export const removeItemAsync = createAsyncThunk(
       // 2. Background Sync with Retry
       await withRetry(() => api.delete(`/cart/${id}`), 3);
       return id;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // 3. Rollback on Failure
       if (previousItem) {
         dispatch(cartSlice.actions.addItemOptimistic(previousItem));
       }
       toast.error('Failed to remove item. Changes reverted.');
-      return rejectWithValue(error.response?.data?.message || 'Sync failed');
+      return rejectWithValue(getApiErrorMessage(error));
     }
   }
 );
@@ -94,11 +107,11 @@ export const updateQuantityAsync = createAsyncThunk(
         await withRetry(() => api.put(`/cart/${id}`, { quantity }), 3);
       }
       return { id, quantity };
-    } catch (error: any) {
+    } catch (error: unknown) {
       // 3. Rollback on Failure
       dispatch(cartSlice.actions.updateQuantityOptimistic({ id, quantity: prevQuantity }));
       toast.error('Failed to update quantity. Changes reverted.');
-      return rejectWithValue(error.response?.data?.message || 'Sync failed');
+      return rejectWithValue(getApiErrorMessage(error));
     }
   }
 );
