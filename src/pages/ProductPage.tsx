@@ -1,13 +1,13 @@
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ShoppingCart } from 'lucide-react';
-import { useDispatch } from 'react-redux';
-import { addItemOptimistic } from '@/store/cartSlice';
+import { addItemAsync } from '@/store/cartSlice';
+import { useAppDispatch } from '@/store/store';
 import toast from 'react-hot-toast';
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const handleAddToCart = () => {
     // Create the cart item payload
@@ -19,7 +19,7 @@ export default function ProductPage() {
     };
 
     // Dispatch optimistic update
-    dispatch(addItemOptimistic(cartItem));
+    dispatch(addItemAsync(cartItem));
     
     // Show success notification
     toast.success('Added to cart!');

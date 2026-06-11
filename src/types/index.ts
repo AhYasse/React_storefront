@@ -4,6 +4,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   imageUrl?: string;
+  addItemAsync?: (item: CartItem) => Promise<void>;
 }
 
 export interface Product {

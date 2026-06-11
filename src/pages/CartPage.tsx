@@ -1,15 +1,27 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '@/store/store';
+import { updateQuantityOptimistic, removeItemOptimistic } from '@/store/cartSlice';
+import toast from 'react-hot-toast';
 
 export default function CartPage() {
-  // Placeholder cart items
-  const cartItems = [
-    { id: '1', name: 'Product 1', price: 99.99, quantity: 2 },
-    { id: '2', name: 'Product 2', price: 49.99, quantity: 1 },
-  ];
+  const dispatch = useAppDispatch();
+  
+  // Read cart items directly from Redux (automatically persisted to localStorage)
+  const cartItems = useAppSelector((state) => state.cart.items);
 
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const handleQuantityChange = (id: string, newQuantity: number) => {
+    // The reducer automatically removes the item if newQuantity <= 0
+    dispatch(updateQuantityOptimistic({ id, quantity: newQuantity }));
+  };
+
+  const handleRemove = (id: string) => {
+    dispatch(removeItemOptimistic(id));
+    toast.success('Item removed');
+  };
 
   if (cartItems.length === 0) {
     return (
@@ -37,27 +49,39 @@ export default function CartPage() {
       
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         {cartItems.map((item) => (
-          <div key={item.id} className="flex items-center p-6 border-b last:border-b-0 hover:bg-gray-50 transition">
-            <div className="h-24 w-24 bg-gray-200 rounded-xl flex-shrink-0 flex items-center justify-center">
+          <div key={item.id} className="flex flex-col sm:flex-row items-center p-6 border-b last:border-b-0 hover:bg-gray-50 transition">
+            <div className="h-24 w-24 bg-gray-200 rounded-xl flex-shrink-0 flex items-center justify-center mb-4 sm:mb-0">
               <span className="text-gray-400 text-sm">Image</span>
             </div>
             
-            <div className="ml-6 flex-grow">
+            <div className="sm:ml-6 flex-grow mb-4 sm:mb-0 text-center sm:text-left">
               <h3 className="text-xl font-semibold text-gray-900 mb-1">{item.name}</h3>
               <p className="text-blue-600 font-bold text-lg">${item.price.toFixed(2)}</p>
             </div>
 
-            <div className="flex items-center space-x-3">
-              <button className="p-2 rounded-lg hover:bg-gray-200 transition">
+            <div className="flex items-center space-x-3 mb-4 sm:mb-0">
+              <button 
+                onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                className="p-2 rounded-lg hover:bg-gray-200 transition"
+                aria-label="Decrease quantity"
+              >
                 <Minus className="w-5 h-5 text-gray-700" />
               </button>
               <span className="w-12 text-center font-semibold text-lg">{item.quantity}</span>
-              <button className="p-2 rounded-lg hover:bg-gray-200 transition">
+              <button 
+                onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                className="p-2 rounded-lg hover:bg-gray-200 transition"
+                aria-label="Increase quantity"
+              >
                 <Plus className="w-5 h-5 text-gray-700" />
               </button>
             </div>
 
-            <button className="ml-6 text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition">
+            <button 
+              onClick={() => handleRemove(item.id)}
+              className="sm:ml-6 text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition"
+              aria-label="Remove item"
+            >
               <Trash2 className="w-6 h-6" />
             </button>
           </div>
@@ -68,7 +92,7 @@ export default function CartPage() {
             <span className="text-2xl font-bold text-gray-900">Total:</span>
             <span className="text-3xl font-bold text-blue-600">${total.toFixed(2)}</span>
           </div>
-          <div className="flex space-x-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <Link 
               to="/"
               className="flex-1 bg-gray-200 text-gray-900 py-4 rounded-xl font-semibold hover:bg-gray-300 transition text-center"
