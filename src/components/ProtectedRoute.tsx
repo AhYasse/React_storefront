@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-
+import authService from '@/services/authService';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   adminOnly?: boolean;
@@ -18,5 +18,8 @@ export default function ProtectedRoute({ children, adminOnly = false }: Protecte
     return <Navigate to="/" replace />;
   }
 
+  if (!authService.isAuthenticated()) {
+  return <Navigate to="/login" />;
+  }
   return <>{children}</>;
 }
