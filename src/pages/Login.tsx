@@ -5,34 +5,49 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { AxiosError } from 'axios';
-import authService from '@/services/authService';
+import { useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/store/store';
+import { loginUser, clearError } from '@/store/userSlice';
 
 export default function Login() {
   const navigate = useNavigate();
-  
+  const dispatch = useAppDispatch();
+  const { status, error } = useAppSelector((state) => state.user);
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
+  // Clear error when component unmounts
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
+
+  // Show error toast when Redux error changes
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearError());
+    }
+  }, [error, dispatch]);
+
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await authService.login(data);
+      await dispatch(loginUser(data)).unwrap();
       toast.success('Welcome back!');
       navigate('/');
-    } catch (error) {
-      // Safely extract error message without using 'any'
-      let msg = 'Invalid credentials. Please try again.';
-      if (error instanceof AxiosError && error.response?.data?.message) {
-        msg = error.response.data.message;
-      }
-      toast.error(msg);
+    } catch {
+      // Error is handled by the useEffect above
     }
   };
+
+  const isLoading = status === 'loading';
 
   return (
     <motion.div 
@@ -47,7 +62,6 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Email Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
             <div className="relative">
@@ -55,7 +69,7 @@ export default function Login() {
               <input
                 type="email"
                 {...register('email')}
-                disabled={isSubmitting}
+                disabled={isLoading}
                 className={`w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition disabled:bg-gray-50 ${
                   errors.email ? 'border-red-500' : 'border-gray-300'
                 }`}
@@ -65,7 +79,6 @@ export default function Login() {
             {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
           </div>
 
-          {/* Password Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
             <div className="relative">
@@ -73,7 +86,7 @@ export default function Login() {
               <input
                 type="password"
                 {...register('password')}
-                disabled={isSubmitting}
+                disabled={isLoading}
                 className={`w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition disabled:bg-gray-50 ${
                   errors.password ? 'border-red-500' : 'border-gray-300'
                 }`}
@@ -89,13 +102,12 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isLoading}
             className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
           >
-            {isSubmitting ? (
+            {isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 Signing in...

@@ -53,27 +53,31 @@ interface RegisterData {
   password: string;
 }
 
-// 3. AUTH SERVICE METHODS
+// 3. AUTH SERVICE
 
 export const authService = {
+  // Token accessors (used by userSlice for initial state hydration)
+  getToken: (): string | null => tokenStorage.getToken(),
   
-    //Login with email/password
+  getRefreshToken: (): string | null => tokenStorage.getRefreshToken(),
+  
+  getCurrentUser: (): User | null => tokenStorage.getUser(),
+  
+  isAuthenticated: (): boolean => !!tokenStorage.getToken(),
 
+  // Auth actions
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     const response = await api.post<AuthResponse>('/auth/login', credentials);
     const { token, refreshToken, user } = response.data;
     
-    // Persist tokens and user data
     tokenStorage.setTokens(token, refreshToken);
     tokenStorage.setUser(user);
     
     return response.data;
   },
 
-    // Register a new account
-   
   register: async (data: RegisterData): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/register', data);
+    const response = await api.post<AuthResponse>('/users/register', data);
     const { token, refreshToken, user } = response.data;
     
     tokenStorage.setTokens(token, refreshToken);
@@ -81,11 +85,6 @@ export const authService = {
     
     return response.data;
   },
-
-  
-    // Explicitly refresh the access token
-    // (Note: The API interceptor also handles 401 refreshes automatically,
-    // but this is useful for manual refreshes, e.g., before token expiry)
 
   refresh: async (): Promise<{ token: string; refreshToken: string }> => {
     const currentRefreshToken = tokenStorage.getRefreshToken();
@@ -105,12 +104,8 @@ export const authService = {
     return { token, refreshToken };
   },
 
-  
-// Logout: clear all auth state and redirect to login
-   
   logout: async (): Promise<void> => {
     try {
-      // Optionally notify the backend to invalidate the refresh token
       const refreshToken = tokenStorage.getRefreshToken();
       if (refreshToken) {
         await api.post('/auth/logout', { refreshToken }).catch(() => {
@@ -118,26 +113,9 @@ export const authService = {
         });
       }
     } finally {
-      // Always clear local state, even if the API call fails
       tokenStorage.clearTokens();
-      
-      // Redirect to login page
-      window.location.href = ' /React_storefront/login';
+      window.location.href = '/login';
     }
-  },
-
-  
-// Check if the user is currently authenticated
- 
-  isAuthenticated: (): boolean => {
-    return !!tokenStorage.getToken();
-  },
-
-  
-    // Get the current user from local storage
-   
-  getCurrentUser: (): User | null => {
-    return tokenStorage.getUser();
   },
 };
 

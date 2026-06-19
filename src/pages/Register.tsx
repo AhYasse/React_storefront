@@ -5,40 +5,54 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { AxiosError } from 'axios';
-import authService from '@/services/authService';
+import { useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/store/store';
+import { registerUser, clearError } from '@/store/userSlice';
 
 export default function Register() {
   const navigate = useNavigate();
-  
+  const dispatch = useAppDispatch();
+  const { status, error } = useAppSelector((state) => state.user);
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
 
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearError());
+    }
+  }, [error, dispatch]);
+
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      // Note: We omit confirmPassword before sending to the API
-       const apiData = {
-      name: data.name,
-      email: data.email,
-      password: data.password,
-    };
-      await authService.register(apiData);
+      // Build payload without confirmPassword
+      const payload = {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      };
       
+      await dispatch(registerUser(payload)).unwrap();
       toast.success('Account created successfully!');
       navigate('/');
-    } catch (error) {
-      let msg = 'Registration failed. Please try again.';
-      if (error instanceof AxiosError && error.response?.data?.message) {
-        msg = error.response.data.message;
-      }
-      toast.error(msg);
+    } catch {
+      // Error handled by useEffect
     }
   };
+
+  const isLoading = status === 'loading';
 
   return (
     <motion.div 
@@ -53,7 +67,6 @@ export default function Register() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {/* Name Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
             <div className="relative">
@@ -61,7 +74,7 @@ export default function Register() {
               <input
                 type="text"
                 {...register('name')}
-                disabled={isSubmitting}
+                disabled={isLoading}
                 className={`w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition disabled:bg-gray-50 ${
                   errors.name ? 'border-red-500' : 'border-gray-300'
                 }`}
@@ -71,7 +84,6 @@ export default function Register() {
             {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
           </div>
 
-          {/* Email Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
             <div className="relative">
@@ -79,7 +91,7 @@ export default function Register() {
               <input
                 type="email"
                 {...register('email')}
-                disabled={isSubmitting}
+                disabled={isLoading}
                 className={`w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition disabled:bg-gray-50 ${
                   errors.email ? 'border-red-500' : 'border-gray-300'
                 }`}
@@ -89,7 +101,6 @@ export default function Register() {
             {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
           </div>
 
-          {/* Password Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
             <div className="relative">
@@ -97,7 +108,7 @@ export default function Register() {
               <input
                 type="password"
                 {...register('password')}
-                disabled={isSubmitting}
+                disabled={isLoading}
                 className={`w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition disabled:bg-gray-50 ${
                   errors.password ? 'border-red-500' : 'border-gray-300'
                 }`}
@@ -107,7 +118,6 @@ export default function Register() {
             {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
           </div>
 
-          {/* Confirm Password Field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
             <div className="relative">
@@ -115,7 +125,7 @@ export default function Register() {
               <input
                 type="password"
                 {...register('confirmPassword')}
-                disabled={isSubmitting}
+                disabled={isLoading}
                 className={`w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition disabled:bg-gray-50 ${
                   errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
                 }`}
@@ -125,13 +135,12 @@ export default function Register() {
             {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>}
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isLoading}
             className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center mt-2"
           >
-            {isSubmitting ? (
+            {isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 Creating account...

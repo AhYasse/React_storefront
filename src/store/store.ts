@@ -22,10 +22,10 @@ const storage = {
 // 2. Placeholder Root Reducer
 // TODO: In the coming days, import your slices and add them here:
 import cartReducer from './cartSlice';
-// import userReducer from './userSlice';
+import userReducer from './userSlice';
 const rootReducer = combineReducers({
   cart: cartReducer,
-  // user: userReducer,
+  user: userReducer,
   
   // Temporary placeholder to keep the store valid until slices are added
   _temp: (state = { initialized: true }) => state,
