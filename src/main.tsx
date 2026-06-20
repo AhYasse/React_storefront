@@ -14,7 +14,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <Provider store={store}>
       
       {/* 2. PersistGate delays rendering until the persisted state is retrieved from localStorage */}
-      <PersistGate loading={null} persistor={persistor}>
+      <PersistGate loading={<div className="flex items-center justify-center h-screen">Loading...</div>} persistor={persistor}>
         
         <App />
         

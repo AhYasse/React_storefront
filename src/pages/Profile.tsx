@@ -1,13 +1,38 @@
 import { motion } from 'framer-motion';
 import { User, Mail, Shield } from 'lucide-react';
+import { useEffect } from 'react';
+import { useAppSelector, useAppDispatch } from '@/store/store';
+import { fetchUserProfile } from '@/store/userSlice';
 
 export default function Profile() {
-  // Placeholder user data (would come from Redux/Context in real app)
+  const dispatch = useAppDispatch();
+  const userState = useAppSelector((state) => state.user);
+  const { userInfo, status } = userState;
+
+  // Fetch fresh profile data on component mount
+  useEffect(() => {
+    dispatch(fetchUserProfile()).catch((error) => {
+      console.error('[Profile] Failed to fetch profile:', error);
+    });
+  }, [dispatch]);
+
+  if (!userInfo) {
+    return (
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+          <p>User data not found. Please log in again.</p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  const isLoading = status === 'loading';
+
   const user = {
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    role: 'user',
-    joined: 'January 2024'
+    name: userInfo.name || 'Unknown User',
+    email: userInfo.email || 'No email',
+    role: userInfo.role || 'user',
+    joined: userInfo.createdAt ? new Date(userInfo.createdAt).toLocaleDateString() : 'Unknown'
   };
 
   return (
@@ -49,8 +74,12 @@ export default function Profile() {
             </div>
 
             <div className="pt-6 border-t border-gray-100">
-              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
-                Edit Profile
+              <button 
+                disabled={isLoading}
+                onClick={() => alert('Edit profile coming soon')}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Loading...' : 'Edit Profile'}
               </button>
             </div>
           </div>

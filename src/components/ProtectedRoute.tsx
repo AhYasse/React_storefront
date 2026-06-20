@@ -1,25 +1,28 @@
-import { Navigate } from 'react-router-dom';
-import authService from '@/services/authService';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAppSelector } from '@/store/store';
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
   adminOnly?: boolean;
 }
 
 export default function ProtectedRoute({ children, adminOnly = false }: ProtectedRouteProps) {
-  const token = localStorage.getItem('token');
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
+  const location = useLocation();
 
-  if (!token) {
-    return <Navigate to="/login" replace state={{ from: window.location.pathname }} />;
+  // Read auth state from Redux
+  const userState = useAppSelector((state) => state.user);
+  const userInfo = userState.userInfo;
+
+  // 1. Not authenticated → redirect to login
+  if (!userInfo) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
-  
-  if (adminOnly && user?.role !== 'admin') {
+
+  // 2. Admin-only route but user is not admin → redirect to home
+  if (adminOnly && userInfo.role !== 'admin') {
     return <Navigate to="/" replace />;
   }
 
-  if (!authService.isAuthenticated()) {
-  return <Navigate to="/login" />;
-  }
+  // 3. Authorized → render children
   return <>{children}</>;
 }

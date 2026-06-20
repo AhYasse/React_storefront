@@ -25,6 +25,7 @@ export const router = createBrowserRouter([
       { path: 'checkout', element: <CheckoutPage /> },
       { path: 'login', element: <Login /> },
       { path: 'register', element: <Register /> },
+      // Protected Routes
       { 
         path: 'profile', 
         element: (

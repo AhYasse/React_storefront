@@ -3,7 +3,6 @@ import { persistStore, persistReducer } from 'redux-persist';
 import { useDispatch, useSelector } from 'react-redux';
 
 // 1. Robust custom storage engine for Vite/ESM environments
-// (Prevents the "storage.getItem is not a function" error)
 const storage = {
   getItem: (key: string) => {
     const value = localStorage.getItem(key);
@@ -19,23 +18,20 @@ const storage = {
   },
 };
 
-// 2. Placeholder Root Reducer
-// TODO: In the coming days, import your slices and add them here:
+// 2. Import reducers
 import cartReducer from './cartSlice';
 import userReducer from './userSlice';
+
 const rootReducer = combineReducers({
   cart: cartReducer,
   user: userReducer,
-  
-  // Temporary placeholder to keep the store valid until slices are added
-  _temp: (state = { initialized: true }) => state,
 });
 
 // 3. Configure Redux Persist
 const persistConfig = {
   key: 'root',
-  storage, // Uses our custom ESM-safe storage
-  whitelist: ['cart', 'user'], // TODO: Add slice names here later to persist them
+  storage,
+  whitelist: ['cart', 'user'],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -46,7 +42,6 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // Ignore redux-persist actions to prevent false-positive non-serializable warnings
         ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE', 'persist/REGISTER'],
       },
     }),

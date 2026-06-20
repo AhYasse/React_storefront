@@ -1,8 +1,59 @@
 import { motion } from 'framer-motion';
 import { CreditCard, MapPin, Mail } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useAppSelector } from '@/store/store';
+import toast from 'react-hot-toast';
 
 export default function CheckoutPage() {
+  const navigate = useNavigate();
+  
+  // Get user data from Redux
+  const userState = useAppSelector((state) => state.user);
+  const userInfo = userState.userInfo;
+  
+  // Get cart data from Redux
+  const cartItems = useAppSelector((state) => state.cart.items);
+  
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!userInfo) {
+      toast.error('Please login to proceed to checkout');
+      navigate('/login', { replace: true });
+    }
+  }, [userInfo, navigate]);
+
+  // If not logged in, don't render checkout page
+  if (!userInfo) {
+    return null;
+  }
+  
+  // Calculate totals from actual cart items
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const shipping = subtotal > 0 ? 9.99 : 0;
+  const total = subtotal + shipping;
+
+  // Redirect to cart if empty
+  if (cartItems.length === 0) {
+    return (
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl mx-auto">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+          <p className="text-blue-700 font-medium">Your cart is empty. Add items before checkout.</p>
+          <Link to="/" className="text-blue-600 hover:text-blue-800 mt-2 inline-block">
+            Continue Shopping
+          </Link>
+        </div>
+      </motion.div>
+    );
+  }
+
+  const handlePlaceOrder = () => {
+    toast.success('Order placed successfully!');
+    setTimeout(() => {
+      navigate('/');
+    }, 1000);
+  };
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
@@ -39,21 +90,36 @@ export default function CheckoutPage() {
         <div className="lg:col-span-1">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
+            
+            {/* Cart Items List */}
+            <div className="space-y-2 mb-4 max-h-40 overflow-y-auto">
+              {cartItems.map((item) => (
+                <div key={item.id} className="flex justify-between text-sm text-gray-600 pb-2 border-b border-gray-100">
+                  <span>{item.name} x{item.quantity}</span>
+                  <span>${(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+            
+            {/* Totals */}
             <div className="space-y-3 mb-6">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
-                <span>$399.97</span>
+                <span>${subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Shipping</span>
-                <span>$9.99</span>
+                <span>${shipping.toFixed(2)}</span>
               </div>
               <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-gray-900 text-lg">
                 <span>Total</span>
-                <span>$409.96</span>
+                <span>${total.toFixed(2)}</span>
               </div>
             </div>
-            <button className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition mb-3">
+            <button 
+              onClick={handlePlaceOrder}
+              className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition mb-3"
+            >
               Place Order
             </button>
             <Link to="/cart" className="block text-center text-gray-600 hover:text-gray-900 text-sm">

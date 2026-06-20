@@ -1,159 +1,153 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import authService from '@/services/authService';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import api from '@/services/api';
 import { User } from '@/types';
-import { AxiosError } from 'axios';
 
-// 1. STATE & TYPES
+// UserInfo includes all properties returned by backend (token, user data, etc.)
+interface UserInfo extends User {
+  token?: string;
+  refreshToken?: string;
+  [key: string]: string | undefined; // Allow other fields from backend
+}
 
+const storedUser = typeof window !== 'undefined' ? localStorage.getItem('userInfo') : null;
+const initialUser: UserInfo | null = storedUser ? JSON.parse(storedUser) : null;
+
+export const loginUser = createAsyncThunk(
+  'user/login',
+  async (credentials: { email: string; password: string }) => {
+    const res = await api.post('/users/login', credentials);
+    console.log('[loginUser API Response]:', res.data);
+    return res.data;
+  }
+);
+
+export const registerUser = createAsyncThunk(
+  'user/register',
+  async (payload: { name: string; email: string; password: string }) => {
+    const res = await api.post('/users/register', payload);
+    console.log('[registerUser API Response]:', res.data);
+    return res.data;
+  }
+);
+
+export const fetchUserProfile = createAsyncThunk(
+  'user/profile',
+  async () => {
+    const res = await api.get('/users/profile');
+    console.log('[fetchUserProfile API Response]:', res.data);
+    return res.data;
+  }
+);
+
+export const updateUserProfile = createAsyncThunk(
+  'user/updateProfile',
+  async (payload: { name?: string; email?: string; password?: string; address?: string; phoneNumber?: string }) => {
+    const res = await api.put('/users/profile', payload);
+    console.log('[updateUserProfile API Response]:', res.data);
+    return res.data;
+  }
+);
 
 interface UserState {
-  user: User | null;
-  token: string | null;
+  userInfo: UserInfo | null;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
 }
 
-const initialState: UserState = {
-  user: authService.getCurrentUser(), // Hydrate from localStorage on app start
-  token: authService.getToken(),
-  status: 'idle',
-  error: null,
-};
-
-// 2. HELPER: Extract error message safely
-
-
-const extractErrorMessage = (error: unknown): string => {
-  if (error instanceof AxiosError && error.response?.data?.message) {
-    return error.response.data.message;
-  }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return 'An unexpected error occurred';
-};
-
-// 3. ASYNC THUNKS
-
-
-interface LoginPayload {
-  email: string;
-  password: string;
-}
-
-interface RegisterPayload {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export const loginUser = createAsyncThunk<
-  { user: User; token: string },
-  LoginPayload,
-  { rejectValue: string }
->('user/loginUser', async (credentials, { rejectWithValue }) => {
-  try {
-    const response = await authService.login(credentials);
-    return { user: response.user, token: response.token };
-  } catch (error) {
-    return rejectWithValue(extractErrorMessage(error));
-  }
-});
-
-export const registerUser = createAsyncThunk<
-  { user: User; token: string },
-  RegisterPayload,
-  { rejectValue: string }
->('user/registerUser', async (data, { rejectWithValue }) => {
-  try {
-    const response = await authService.register(data);
-    return { user: response.user, token: response.token };
-  } catch (error) {
-    return rejectWithValue(extractErrorMessage(error));
-  }
-});
-
-export const logoutUser = createAsyncThunk<
-  void,
-  void,
-  { rejectValue: string }
->('user/logoutUser', async (_, { rejectWithValue }) => {
-  try {
-    await authService.logout();
-  } catch (error) {
-    // Even if API call fails, we want to clear local state
-    return rejectWithValue(extractErrorMessage(error));
-  }
-});
-
-
-// 4. SLICE
-
 const userSlice = createSlice({
   name: 'user',
-  initialState,
+  initialState: {
+    userInfo: initialUser,
+    status: 'idle' as const,
+    error: null,
+  } as UserState,
   reducers: {
-    clearError: (state) => {
-      state.error = null;
-    },
-    resetStatus: (state) => {
+    logout(state) {
+      state.userInfo = null;
       state.status = 'idle';
+      state.error = null;
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('userInfo');
+      }
+    },
+    clearError(state) {
       state.error = null;
     },
   },
   extraReducers: (builder) => {
-    // --- Login ---
+    // Login
     builder
       .addCase(loginUser.pending, (state) => {
         state.status = 'loading';
         state.error = null;
       })
-      .addCase(loginUser.fulfilled, (state, action: PayloadAction<{ user: User; token: string }>) => {
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.userInfo = action.payload;
         state.status = 'succeeded';
-        state.user = action.payload.user;
-        state.token = action.payload.token;
+        console.log('[loginUser.fulfilled] Redux state:', { userInfo: state.userInfo });
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('userInfo', JSON.stringify(action.payload));
+        }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload || 'Login failed';
+        state.error = action.error.message || 'Login failed';
       });
 
-    // --- Register ---
+    // Register
     builder
       .addCase(registerUser.pending, (state) => {
         state.status = 'loading';
         state.error = null;
       })
-      .addCase(registerUser.fulfilled, (state, action: PayloadAction<{ user: User; token: string }>) => {
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.userInfo = action.payload;
         state.status = 'succeeded';
-        state.user = action.payload.user;
-        state.token = action.payload.token;
+        console.log('[registerUser.fulfilled] Redux state:', { userInfo: state.userInfo });
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('userInfo', JSON.stringify(action.payload));
+        }
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload || 'Registration failed';
+        state.error = action.error.message || 'Registration failed';
       });
 
-    // --- Logout ---
+    // Fetch Profile
     builder
-      .addCase(logoutUser.pending, (state) => {
+      .addCase(fetchUserProfile.pending, (state) => {
         state.status = 'loading';
       })
-      .addCase(logoutUser.fulfilled, (state) => {
-        state.status = 'idle';
-        state.user = null;
-        state.token = null;
-        state.error = null;
+      .addCase(fetchUserProfile.fulfilled, (state, action) => {
+        state.userInfo = action.payload;
+        state.status = 'succeeded';
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('userInfo', JSON.stringify(action.payload));
+        }
       })
-      .addCase(logoutUser.rejected, (state) => {
-        // Clear state even on failure
-        state.status = 'idle';
-        state.user = null;
-        state.token = null;
-        state.error = null;
+      .addCase(fetchUserProfile.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message || 'Failed to fetch profile';
+      });
+
+    // Update Profile
+    builder
+      .addCase(updateUserProfile.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.userInfo = action.payload;
+        state.status = 'succeeded';
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('userInfo', JSON.stringify(action.payload));
+        }
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message || 'Failed to update profile';
       });
   },
 });
 
-export const { clearError, resetStatus } = userSlice.actions;
+export const { logout, clearError } = userSlice.actions;
 export default userSlice.reducer;

@@ -67,11 +67,18 @@ export const authService = {
 
   // Auth actions
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/login', credentials);
+    const response = await api.post<AuthResponse>('/users/login', credentials);
     const { token, refreshToken, user } = response.data;
     
+    console.log('[authService.login] API Response:', { token: !!token, refreshToken: !!refreshToken, hasUser: !!user, user });
+    
     tokenStorage.setTokens(token, refreshToken);
-    tokenStorage.setUser(user);
+    if (user) {
+      tokenStorage.setUser(user);
+    } else {
+      console.warn('[authService.login] No user in response, creating placeholder from token');
+      // If backend doesn't return user, we'll need to fetch it separately or create placeholder
+    }
     
     return response.data;
   },
@@ -108,7 +115,7 @@ export const authService = {
     try {
       const refreshToken = tokenStorage.getRefreshToken();
       if (refreshToken) {
-        await api.post('/auth/logout', { refreshToken }).catch(() => {
+        await api.post('/users/logout', { refreshToken }).catch(() => {
           // Ignore errors - we're logging out anyway
         });
       }
