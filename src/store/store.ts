@@ -21,10 +21,12 @@ const storage = {
 // 2. Import reducers
 import cartReducer from './cartSlice';
 import userReducer from './userSlice';
+import productsReducer from './productsSlice';
 
 const rootReducer = combineReducers({
   cart: cartReducer,
   user: userReducer,
+  products: productsReducer,
 });
 
 // 3. Configure Redux Persist
