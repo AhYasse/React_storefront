@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAppSelector, useAppDispatch } from '@/store/store';
 import { logout } from '@/store/userSlice';
 import toast from 'react-hot-toast';
+import SearchField from '@/components/SearchField';
 
 export default function NavBar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -40,7 +41,10 @@ export default function NavBar() {
           <Link to="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition">
             ShopHub
           </Link>
-
+           {/* Search Field */}
+          <div className="flex-1 max-w-md mx-8">
+            <SearchField/>
+          </div>
           <div className="hidden md:flex items-center space-x-6">
             <Link to="/" className={linkClass('/')}>Home</Link>
             
