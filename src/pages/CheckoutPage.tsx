@@ -9,11 +9,13 @@ import {
   Tag, ShieldCheck, ShoppingBag 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useAppSelector } from '@/store/store';
+import { useAppSelector, useAppDispatch } from '@/store/store';
 import api from '@/services/api';
+import { clearCart } from '@/store/cartSlice';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const cartItems = useAppSelector((state) => state.cart.items);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -43,19 +45,20 @@ export default function CheckoutPage() {
       // Generate a unique idempotency key to prevent duplicate charges on network retries
       const idempotencyKey = crypto.randomUUID();
       
-      await api.post('/checkout', {
+      await api.post('/cart',{
         ...data,
         items: cartItems,
         total,
       }, {
         headers: {
           'Idempotency-Key': idempotencyKey,
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         }
       });
 
       toast.success('Order placed successfully!');
-      // Optional: dispatch(clearCart()) here if your backend doesn't handle it
-      navigate('/profile');
+      dispatch(clearCart());
+      navigate('/');
     } catch (error) {
       console.error('Checkout failed', error);
       toast.error('Checkout failed. Please try again.');
